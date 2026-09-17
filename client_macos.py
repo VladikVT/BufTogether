@@ -91,6 +91,9 @@ class ClientApp:
         elif t == 'leave':
             self.hide_cursor()
         elif t == 'move':
+            rtt = time.time() - msg.get('t', time.time())
+            if rtt > 0.05:
+                print(f"[client] move latency: {rtt*1000:.0f} ms")
             self.warp(msg['x'], msg['y'])
         elif t == 'button':
             self.post_button(msg['button'], msg['action'])

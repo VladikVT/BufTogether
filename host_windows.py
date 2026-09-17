@@ -127,6 +127,8 @@ class HostApp:
         # Virtual cursor on client
         self.vx = 0.0
         self.vy = 0.0
+        self._move_count = 0
+        self._move_t0 = time.time()
 
         # Anchor in REMOTE mode
         self.anchor = (0, 0)
@@ -341,6 +343,13 @@ class HostApp:
 
         # REMOTE
         if wParam == WM_MOUSEMOVE:
+            self._move_count += 1
+            now = time.time()
+            if now - self._move_t0 >= 1.0:
+                print(f"[host] WM_MOUSEMOVE rate: {self._move_count}/s")
+                self._move_count = 0
+                self._move_t0 = now
+                
             ax, ay = self.anchor
             dx = px - ax
             dy = py - ay
@@ -358,8 +367,7 @@ class HostApp:
                     self.vy = float(self.client_h - 1)
                 # Курсор ставим обратно в якорь, чтобы не упереться в край
                 user32.SetCursorPos(ax, ay)
-                self.queue_tx({'type': 'move',
-                               'x': int(self.vx), 'y': int(self.vy)})
+                self.queue_tx({'type': 'move', 'x': int(self.vx), 'y': int(self.vy),'t': time.time()})
             return 1
 
         if wParam in (WM_LBUTTONDOWN, WM_LBUTTONUP,
