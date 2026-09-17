@@ -162,8 +162,19 @@ class ClientApp:
                     pass
             time.sleep(1.0)
 
+    def heartbeat_loop(self):
+        """Раз в секунду шлём ping, чтобы хост не считал нас мёртвыми."""
+        while not self.stop.is_set():
+            if self.connected and self.sock:
+                try:
+                    send_msg(self.sock, {'type': 'ping'})
+                except Exception:
+                    pass
+            time.sleep(1.0)
+
     def run(self):
         threading.Thread(target=self.clipboard_loop, daemon=True).start()
+        threading.Thread(target=self.heartbeat_loop, daemon=True).start()
         self.connect_loop()
 
 

@@ -139,7 +139,7 @@ class HostApp:
 
         # Watchdog
         self.last_rx = time.time()
-        self.watchdog_timeout = 2.0
+        self.watchdog_timeout = 5.0
 
         # Hook
         self.hook_proc = None
@@ -244,6 +244,8 @@ class HostApp:
 
     def handle_client_msg(self, msg):
         t = msg.get('type')
+        if t == 'ping':
+            return
         if t == 'hello':
             with self.lock:
                 self.client_w = int(msg.get('width', 0))
@@ -270,6 +272,7 @@ class HostApp:
         if self.client_w == 0 or self.client_h == 0:
             return False
 
+        self.last_rx = time.time()
         self.mode = 'REMOTE'
         l, t, r, b = self.leftmost
         h = b - t
