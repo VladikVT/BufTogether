@@ -317,6 +317,29 @@ class MacOSClient:
 
     # ==================== Networking & Dispatch ====================
 
+    def trigger_spotlight(self):
+        self.release_all()
+        cmd_down = Quartz.CGEventCreateKeyboardEvent(None, 0x37, True)
+        Quartz.CGEventSetFlags(cmd_down, Quartz.kCGEventFlagMaskCommand)
+        Quartz.CGEventPost(Quartz.kCGHIDEventTap, cmd_down)
+
+        time.sleep(0.015)
+
+        space_down = Quartz.CGEventCreateKeyboardEvent(None, 0x31, True)
+        Quartz.CGEventSetFlags(space_down, Quartz.kCGEventFlagMaskCommand)
+        Quartz.CGEventPost(Quartz.kCGHIDEventTap, space_down)
+
+        time.sleep(0.015)
+
+        space_up = Quartz.CGEventCreateKeyboardEvent(None, 0x31, False)
+        Quartz.CGEventSetFlags(space_up, Quartz.kCGEventFlagMaskCommand)
+        Quartz.CGEventPost(Quartz.kCGHIDEventTap, space_up)
+
+        time.sleep(0.015)
+
+        cmd_up = Quartz.CGEventCreateKeyboardEvent(None, 0x37, False)
+        Quartz.CGEventPost(Quartz.kCGHIDEventTap, cmd_up)
+
     def handle_msg(self, msg: dict):
         mtype = msg.get('type')
         if mtype == 'enter':
@@ -347,6 +370,10 @@ class MacOSClient:
 
         elif mtype == 'release_all':
             self.release_all()
+
+        elif mtype == 'spotlight':
+            self.trigger_spotlight()
+            print("[★] Spotlight search triggered")
 
         elif mtype == 'sync_layout':
             lang = msg.get('lang', 'en')

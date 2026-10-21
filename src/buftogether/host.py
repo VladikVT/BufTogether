@@ -503,10 +503,15 @@ class WindowsHostApp:
             self.win_pressed = is_down
 
         elif vk == 0x20:  # Space
-            if is_down and (self.win_pressed or self.ctrl_pressed or self.alt_pressed):
-                self.queue_tx({'type': 'switch_input_source'})
-                print("[*] Language switch triggered (Mod+Space)")
-                return 1
+            if is_down:
+                if self.win_pressed:
+                    self.queue_tx({'type': 'spotlight'})
+                    print("[*] Win+Space -> Opening Spotlight on macOS")
+                    return 1
+                if self.ctrl_pressed or self.alt_pressed:
+                    self.queue_tx({'type': 'switch_input_source'})
+                    print("[*] Language switch triggered (Mod+Space)")
+                    return 1
             self.non_mod_pressed = True
 
         elif vk == 0x14:  # CapsLock
