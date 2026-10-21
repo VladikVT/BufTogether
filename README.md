@@ -43,12 +43,24 @@
 
 ## Структура проекта
 
-- `host_windows.py` — хост-сервис для Windows (Win32 low-level mouse & keyboard hooks, TCP-сервер).
-- `client_macos.py` — клиент для macOS (Quartz Event Taps, CoreGraphics, HIToolbox Input Sources, Cocoa Pasteboard).
-- `protocol.py` — сетевой бинарный протокол с малой задержкой и защитой от переполнения буфера.
-- `keycodes.py` — таблица трансляции кодов клавиш Windows VK → macOS Carbon Keycodes.
-- `run_host.bat` — скрипт запуска хоста на Windows.
-- `run_client.sh` — скрипт запуска клиента на macOS.
+```text
+BufTogether/
+├── src/
+│   ├── buftogether/
+│   │   ├── __init__.py      # Метаданные пакета
+│   │   ├── host.py          # Windows Host (Win32 хуки, TCP-сервер)
+│   │   ├── client.py        # macOS Client (Quartz, CoreGraphics, HIToolbox)
+│   │   ├── protocol.py      # Сетевой бинарный протокол
+│   │   └── keycodes.py      # Маппинг клавиш Windows VK → macOS Carbon
+│   └── tests/
+│       └── test_warp.py     # Диагностические тесты
+├── run_host.bat             # Скрипт запуска на Windows
+├── run_client.sh            # Скрипт запуска на macOS
+├── requirements.txt         # Зависимости Python
+├── README.md                # Документация
+├── LICENSE                  # Лицензия MIT
+└── .gitignore
+```
 
 ---
 
@@ -74,7 +86,8 @@ run_host.bat
 ```
 или через Python:
 ```cmd
-.venv\Scripts\python.exe host_windows.py --edge left --speed 1.0
+set PYTHONPATH=src
+.venv\Scripts\python.exe -m buftogether.host --edge left --speed 1.0
 ```
 
 #### Параметры хоста:
@@ -91,7 +104,7 @@ run_host.bat
 ```
 или через Python:
 ```bash
-.venv/bin/python client_macos.py 192.168.0.143 --port 6000
+PYTHONPATH=src .venv/bin/python -m buftogether.client 192.168.0.143 --port 6000
 ```
 
 > **Примечание для macOS**: При первом запуске macOS запросит разрешение на **Accessibility (Универсальный доступ)** в *System Settings → Privacy & Security → Accessibility* для Терминала или процесса Python.
