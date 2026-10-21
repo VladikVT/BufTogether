@@ -142,6 +142,18 @@ class MacOSClient:
         self.input_mgr = InputSourceManager()
         self.current_lang = self.input_mgr.get_current_lang()
 
+        # Multi-click (Double/Triple click) tracking
+        try:
+            from AppKit import NSEvent
+            self.double_click_interval = NSEvent.doubleClickInterval()
+        except Exception:
+            self.double_click_interval = 0.5
+        self.last_click_time = 0.0
+        self.last_click_button = ""
+        self.last_click_x = 0.0
+        self.last_click_y = 0.0
+        self.click_count = 1
+
     # ==================== Cursor & Mouse ====================
 
     def warp(self, x: float, y: float):
@@ -186,6 +198,19 @@ class MacOSClient:
         is_down = (action == 'down')
         self.buttons_down[button] = is_down
 
+        if is_down:
+            now = time.time()
+            dt = now - self.last_click_time
+            dist = abs(self.cur_x - self.last_click_x) + abs(self.cur_y - self.last_click_y)
+            if button == self.last_click_button and dt <= self.double_click_interval and dist <= 8:
+                self.click_count = min(3, self.click_count + 1)
+            else:
+                self.click_count = 1
+            self.last_click_time = now
+            self.last_click_button = button
+            self.last_click_x = self.cur_x
+            self.last_click_y = self.cur_y
+
         btn_map = {
             'left': (Quartz.kCGEventLeftMouseDown, Quartz.kCGEventLeftMouseUp, Quartz.kCGMouseButtonLeft),
             'right': (Quartz.kCGEventRightMouseDown, Quartz.kCGEventRightMouseUp, Quartz.kCGMouseButtonRight),
@@ -199,6 +224,7 @@ class MacOSClient:
         loc = (self.cur_x, self.cur_y)
         evt = Quartz.CGEventCreateMouseEvent(None, etype, loc, cg_btn)
         if evt:
+            Quartz.CGEventSetIntegerValueField(evt, Quartz.kCGMouseEventClickState, self.click_count)
             Quartz.CGEventSetFlags(evt, self.flags)
             Quartz.CGEventPost(Quartz.kCGHIDEventTap, evt)
 
@@ -251,6 +277,8 @@ class MacOSClient:
         for btn in list(self.buttons_down.keys()):
             if self.buttons_down[btn]:
                 self.post_mouse_button(btn, 'up')
+        self.click_count = 1
+        self.last_click_button = ""
 
     # ==================== Clipboard ====================
 
